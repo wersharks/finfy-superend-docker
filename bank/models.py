@@ -28,7 +28,6 @@ class InvestmentType(Enum):
         
 class Bank(models.Model):
     user = AutoOneToOneField(User, related_name='bank', on_delete=models.CASCADE)
-    balance = models.PositiveIntegerField(default=0)
 
     def operate(self, amount, invest_type=InvestmentType.CD, tenure=0):
         data = {}
