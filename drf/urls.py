@@ -22,6 +22,7 @@ urlpatterns = [
     path('auth/api/v1/', include('rest_registration.api.urls')),
     path('finance/', include('finance.urls')),
     path('bank/', include('bank.urls')),
+    path('crypto/', include('crypto.urls')),
     # path('api-auth/', include('rest_framework.urls')),
     # path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('hello/', include('hello_api.urls')),
