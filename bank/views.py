@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 
-from .forms import UserRegistrationForm, UserAddressForm
 from bank.serializers import DepositSerializer
 
 User = get_user_model()
@@ -42,5 +41,6 @@ class WithdrawBankAPI(APIView):
 @permission_classes([IsAuthenticated])
 class MyHistoryAPI(APIView):
     def get(self, request):
-        content = {'message': 'Hello, World!'}
-        return Response(content)
+        user = request.user
+        ledger = user.bank.get_all_my_ledger()
+        return Response(ledger)
