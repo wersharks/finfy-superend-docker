@@ -13,9 +13,6 @@ class DepositType(Enum):
     BROKEN = "broken"
     FAILURE = "failure"
 
-    @staticmethod
-    def get_invest_data(t):
-        pass
 
 class InvestmentType(Enum):
     FD = "Fixed Deposit"
@@ -44,6 +41,24 @@ class Bank(models.Model):
         data['code'] = 1
         data['data'] = ledger.as_dict()
         return data
+
+    def withdraw(self, withdraw_id):
+        data = {}
+        record = BankLedger.objects.get(id=withdraw_id)
+        if(DepositType.TENURE.value not in record.investment_status):
+            data['code'] = -1
+            data['message'] = "not a valid record"
+            return data
+
+        record.investment_status = DepositType.WITHDRAWN.value
+        record.save()
+        
+        r = self.user.wallet.operate(record.current_amount)
+
+        data['code'] = 1
+        data['data'] = r
+        return data
+
 
     def get_all_my_ledger(self):
         data = {}
@@ -97,6 +112,7 @@ class BankLedger(models.Model):
 
     def as_dict(self):
         return {
+            "id": self.id,
             "invesType": self.investment_type,
             "inveStat": self.investment_status,
             "principle": self.principle_amount,

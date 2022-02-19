@@ -32,6 +32,9 @@ class DepositSerializer(serializers.Serializer):
         )
 
 
+class IDSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+
 class RegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True)
 
