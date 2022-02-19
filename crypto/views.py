@@ -23,8 +23,8 @@ COINS_MARKET = "bitcoin,litecoin,ethereum"
 class MyHistoryAPI(APIView):
     def get(self, request):
         user = request.user
-        # ledger = user.bank.get_all_my_ledger()
-        d = {"abc":123}
+        cryptowallet = user.crypto
+        d = cryptowallet.get_all_ledger()
         return Response(d)
 
 @permission_classes([IsAuthenticated])
@@ -41,37 +41,6 @@ class CryptoInfoAPI(APIView):
         data['code'] = 1
         data['data'] = coindata
 
-        #declare figure
-        # fig = go.Figure()
-
-        #Candlestick
-        # fig.add_trace(go.Candlestick(x=data.index,
-        #                 open=data['Open'],
-        #                 high=data['High'],
-        #                 low=data['Low'],
-        #                 close=data['Close'], name = 'market data'))
-
-        # # Add titles
-        # fig.update_layout(
-        #     title='Bitcoin live share price evolution',
-        #     yaxis_title='Bitcoin Price (kUS Dollars)')
-
-        # # X-Axes
-        # fig.update_xaxes(
-        #     rangeslider_visible=True,
-        #     rangeselector=dict(
-        #         buttons=list([
-        #             dict(count=15, label="15m", step="minute", stepmode="backward"),
-        #             dict(count=45, label="45m", step="minute", stepmode="backward"),
-        #             dict(count=1, label="HTD", step="hour", stepmode="todate"),
-        #             dict(count=6, label="6h", step="hour", stepmode="backward"),
-        #             dict(step="all")
-        #         ])
-        #     )
-        # )
-
-        #Show
-        # fig.show()
         return Response(data)
 
 
