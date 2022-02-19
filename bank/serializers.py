@@ -1,8 +1,36 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from bank.models import DepositType, InvestmentType
 
 User = get_user_model()
+class ChoiceField(serializers.ChoiceField):
+    def to_representation(self, obj):
+        if obj == '' and self.allow_blank:
+            return obj
+        return self._choices[obj]
+
+    def to_internal_value(self, data):
+        # To support inserts with the value
+        if data == '' and self.allow_blank:
+            return ''
+
+        for key, val in self._choices.items():
+            if val == data:
+                return key
+        self.fail('invalid_choice', input=data)
+
+class DepositSerializer(serializers.Serializer):
+    amount = serializers.IntegerField()
+    inves_type = ChoiceField(choices=[(tag, tag.value) for tag in InvestmentType])
+    # inves_type = serializers.CharField()
+
+    class Meta:
+        fields = (
+            "amount",
+            "inves_type",
+        )
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True)

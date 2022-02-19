@@ -1,4 +1,5 @@
 from decimal import Decimal
+from tracemalloc import start
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import (
     MinValueValidator,
@@ -135,21 +136,96 @@ class UserAddress(models.Model):
 
 
 from enum import Enum
-class LanguageChoice(Enum):
-    DE = "German"
-    EN = "English"
-    CN = "Chinese"
-    ES = "Spanish"
+from annoying.fields import AutoOneToOneField
+
+class DepositType(Enum):
+    TENURE = "ontenure"
+    WITHDRAWN = "withdrawn"
+    BROKEN = "broken"
+    FAILURE = "failure"
+
+    def __repr__(self):
+        return self.value
+
+class InvestmentType(Enum):
+    FD = "Fixed Deposit"
+    CD = "Classic Deposit"
+
+    @staticmethod
+    def get_invest_data(t):
+        if(t == InvestmentType.FD.value):
+            return (7, 2)
+        elif(t == InvestmentType.CD.value):
+            return (4.5, 0)
+
+    def __repr__(self):
+        return self.value
 
 class Bank(models.Model):
-    user = models.OneToOneField(User, related_name='bank', on_delete=models.CASCADE)
+    user = AutoOneToOneField(User, related_name='bank', on_delete=models.CASCADE)
 
-INVESTMENT_OPTIONS = (
-    ()
-)
+    def operate(self, amount, invest_type=InvestmentType.CD, tenure=0):
+        data = {}
+        if(amount > self.user.wallet.points):
+            data['code'] = -1
+            data['message'] = "not enough points to invest"
+            return data
+
+        ledger = BankLedger.create_ledger_record(self, amount, invest_type)
+        data['code'] = 1
+        data['data'] = ledger.as_dict()
+        return data
+
+    def get_all_my_ledger(self):
+        data = {}
+
+        ledger = list(BankLedger.objects.filter(wallet=self))
+        if(len(ledger) <= 0):
+            data['code'] = -1
+            data['message'] = "no ledger record for your bank"
+            return data
+
+        data['code'] = 1
+        data['data'] = []
+        for d in ledger:
+            d.update_deposit_ledger()
+            data['data'].append(d.as_dict())
+        return data
+
 
 class BankLedger(models.Model):
-    bank = models.ForeignKey(User, related_name='ledger', on_delete=models.CASCADE)
-    investment_type = models.CharField(max_length=5,
-        choices=[(tag, tag.value) for tag in LanguageChoice]  # Choices is a list of Tuple
-    )
+    bank = models.ForeignKey(Bank, related_name='ledger', on_delete=models.CASCADE)
+    investment_type = models.CharField(max_length=5, choices=[(tag, tag.value) for tag in InvestmentType])
+    investment_status = models.CharField(max_length=255, choices=[(tag, tag.value) for tag in DepositType])
+
+    principle_amount = models.PositiveIntegerField()
+    current_amount = models.PositiveIntegerField()
+    startingInterest = models.FloatField()
+    tenure = models.PositiveIntegerField(default=0)
+
+    lastUpdated = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def update_deposit_ledger(self):
+        pass
+
+    @staticmethod
+    def create_ledger_record(bank, amount, investment_type):
+        startingInterest = InvestmentType.get_invest_data(investment_type)[0]
+        investment_status = DepositType.TENURE
+        ledger = BankLedger.objects.create(bank=bank, principle_amount=amount, current_amount=amount, startingInterest=startingInterest, investment_type=investment_type, investment_status=investment_status)
+        ledger.save()
+        return ledger
+
+    def as_dict(self):
+        return {
+            "invesType": str(self.investment_type),
+            "inveStat": str(self.investment_status),
+            "principle": self.principle_amount,
+            #"status": self.trasaction_status,
+            "current": self.current_amount,
+            "roi": self.startingInterest,
+            "tenure": self.tenure,
+            "lastUpdated": self.lastUpdated,
+            "created": self.created,
+        }
