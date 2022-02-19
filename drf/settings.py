@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'account',
     'hello_api',
     'finance',
+    'bank'
 ]
 
 AUTH_USER_MODEL = 'account.User'
