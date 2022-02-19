@@ -16,10 +16,6 @@ User = get_user_model()
 
 @permission_classes([IsAuthenticated])
 class DepositBankAPI(APIView):
-    def get(self, request):
-        content = {'message': 'Hello, World!'}
-        return Response(content)
-
     def post(self, request):
         data = {}
         serializer = DepositSerializer(data=request.data)
