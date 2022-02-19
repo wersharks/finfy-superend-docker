@@ -8,6 +8,11 @@ from django.db import models
 
 from .managers import UserManager
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+
+User = get_user_model()
+
 MALE = 'M'
 FEMALE = 'F'
 
@@ -16,23 +21,23 @@ GENDER_CHOICE = (
     (FEMALE, "Female"),
 )
 
-class User(AbstractUser):
-    username = None
-    email = models.EmailField(unique=True, null=False, blank=False)
+# class User(AbstractUser):
+#     username = None
+#     email = models.EmailField(unique=True, null=False, blank=False)
 
-    objects = UserManager()
+#     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+#     USERNAME_FIELD = 'email'
+#     REQUIRED_FIELDS = []
 
-    def __str__(self):
-        return self.email
+#     def __str__(self):
+#         return self.email
 
-    @property
-    def balance(self):
-        if hasattr(self, 'account'):
-            return self.account.balance
-        return 0
+#     @property
+#     def balance(self):
+#         if hasattr(self, 'account'):
+#             return self.account.balance
+#         return 0
 
 
 class BankAccountType(models.Model):
@@ -127,3 +132,24 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+from enum import Enum
+class LanguageChoice(Enum):
+    DE = "German"
+    EN = "English"
+    CN = "Chinese"
+    ES = "Spanish"
+
+class Bank(models.Model):
+    user = models.OneToOneField(User, related_name='bank', on_delete=models.CASCADE)
+
+INVESTMENT_OPTIONS = (
+    ()
+)
+
+class BankLedger(models.Model):
+    bank = models.ForeignKey(User, related_name='ledger', on_delete=models.CASCADE)
+    investment_type = models.CharField(max_length=5,
+        choices=[(tag, tag.value) for tag in LanguageChoice]  # Choices is a list of Tuple
+    )

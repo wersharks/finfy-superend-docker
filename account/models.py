@@ -8,3 +8,9 @@ USER_TYPE_CHOICES = (
                     )
 class User(AbstractUser):
     user_type = models.CharField(max_length=40,choices=USER_TYPE_CHOICES)
+
+    @property
+    def balance(self):
+        if hasattr(self, 'account'):
+            return self.wallet.points
+        return 0

@@ -18,7 +18,7 @@ TRANSACTION_TYPE_CHOICES = (
 
 class Wallet(models.Model):
     user = AutoOneToOneField(User, primary_key=True, on_delete=models.CASCADE)
-    points = models.PositiveSmallIntegerField(default=0)
+    points = models.PositiveIntegerField(default=0)
 
     def operate(self, amount, hash=None, transac_stat=TRANSACTION_STATUS_CHOICES[1][0]):
         data = {}
@@ -56,13 +56,11 @@ class Wallet(models.Model):
         return 'wallet of user {}'.format(self.user.username)
     
 class WalletLedger(models.Model):
-    wallet = models.ForeignKey(
-        Wallet, on_delete=models.CASCADE)
-
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
 
     change = models.IntegerField()
-    initialWalletAmt = models.PositiveSmallIntegerField()
-    finalWalletAmt = models.PositiveSmallIntegerField()
+    initialWalletAmt = models.PositiveIntegerField()
+    finalWalletAmt = models.PositiveIntegerField()
 
     trasaction_status = models.CharField(max_length=255, choices=TRANSACTION_STATUS_CHOICES)
     transaction_type = models.CharField(max_length=255, choices=TRANSACTION_TYPE_CHOICES)
