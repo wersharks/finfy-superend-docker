@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'account',
     'hello_api',
     'finance',
-    'bank'
+    'bank',
     'stocks',
 ]
 
