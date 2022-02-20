@@ -1,0 +1,7 @@
+Django
+django-rest-registration
+djangorestframework
+django-cors-headers
+django-annoying
+pycoingecko
+yfinance
