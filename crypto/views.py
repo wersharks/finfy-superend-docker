@@ -6,11 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from pycoingecko import CoinGeckoAPI
 
-#Data Source
-import yfinance as yf
-
-#Data viz
-import plotly.graph_objs as go
 
 from .serializers import BuyCryptoSerializer
 
