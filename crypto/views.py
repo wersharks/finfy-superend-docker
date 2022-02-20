@@ -8,7 +8,7 @@ from pycoingecko import CoinGeckoAPI
 
 
 from .serializers import CryptoActionSerializer
-from .const import COINS_MARKET
+from .const import COINS_MARKET, COIN_MARKET_ASSET
 
 # Create your views here.
 @permission_classes([IsAuthenticated])
@@ -27,7 +27,8 @@ class CryptoInfoAPI(APIView):
         d = cg.get_price(ids=COINS_MARKET, vs_currencies='inr', include_24hr_change='true')
         coindata = []
         for k, v in d.items():
-            coindata.append({"crypto": k, "val":v['inr'], "change":v['inr_24h_change']})
+            print(k)
+            coindata.append({"crypto": k, "val":v['inr'], "change":v['inr_24h_change'], "img":COIN_MARKET_ASSET[k]})
 
         data = {}
         data['code'] = 1
