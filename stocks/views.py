@@ -45,7 +45,7 @@ class infoAPI(APIView):
             employees = company_info.info['fullTimeEmployees']
             summary = company_info.info['longBusinessSummary']
             news = company_info.news
-            content = {'latest' : latest, 'on_day_prev' : one_day_prev, 'diff' : diff, 'percentage_diff':percentage_diff,'logo':logo,'market_cap':market_cap,'dividend':dividend,'sector':sector,'empolyees':employees,'summary':summary,'news':news}
+            content = {'id':stock, 'latest' : latest, 'on_day_prev' : one_day_prev, 'diff' : diff, 'percentage_diff':percentage_diff,'logo':logo,'market_cap':market_cap,'dividend':dividend,'sector':sector,'empolyees':employees,'summary':summary,'news':news}
             data.append(content)
         return Response(data)
     
