@@ -5,16 +5,12 @@ from enum import Enum
 
 User = get_user_model()
 
-class CryptoBalance(models.Model):
-    code = models.CharField(max_length=5)
-    amount = models.FloatField()
-
 class CryptoWallet(models.Model):
     user = AutoOneToOneField(User, related_name='crypto', on_delete=models.CASCADE)
-    balance = models.ForeignKey(CryptoBalance, null=True, on_delete=models.CASCADE)
 
     def operate(self, crypto_id, amount):
-        pass
+        # get all wallets with crypto_id
+        bal = list(CryptoBalance.objects.filter(cryptowallet=self))
 
     def get_all_ledger(self):
         data = {}
@@ -31,7 +27,10 @@ class CryptoWallet(models.Model):
             data['data'].append(d.as_dict())
         return data
 
-
+class CryptoBalance(models.Model):
+    cryptowallet = models.ForeignKey(CryptoWallet, related_name='wallet', on_delete=models.CASCADE)
+    code = models.CharField(max_length=5)
+    amount = models.FloatField()
 
 class ActionType(Enum):
     BUY="buy"

@@ -36,9 +36,11 @@ class Bank(models.Model):
             data['message'] = "not enough points to invest"
             return data
 
+        r = self.user.wallet.operate(amount*-1)
+
         ledger = BankLedger.create_ledger_record(self, amount, invest_type)
         data['code'] = 1
-        data['data'] = ledger.as_dict()
+        data['data'] = r.as_dict()
         return data
 
     def withdraw(self, withdraw_id):
