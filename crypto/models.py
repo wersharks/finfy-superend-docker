@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from annoying.fields import AutoOneToOneField
 from enum import Enum
 
-from numpy import true_divide
+from numpy import quantile, true_divide
 from .const import COINS_MARKET
 from pycoingecko import CoinGeckoAPI
 
@@ -38,9 +38,44 @@ class CryptoWallet(models.Model):
             new_rc = CryptoBalance(cryptowallet=self, code=crypto_id, amount=amount)
             new_rc.save()
 
+        self.user.wallet.operate(amount * price * -1)
+
+        x = CryptoWalletLedger.create_ledger_record(self, ActionType.BUY, crypto_id, price, amount)
+
         data['code'] = 1
         data['message'] = "Success"
         data['wallet'] = self.wallet_data()
+        data['ledger'] = x
+        return data
+
+    def sell(self, crypto_id, amount):
+        data = {}
+        if(not CryptoWallet.isValidCryptId(crypto_id)):
+            data['code'] = -1
+            data['message'] = "not a valid crypto"
+            return data
+        
+        cdata = CryptoWallet.get_coin_data(crypto_id)
+        price = cdata[crypto_id]['inr']
+
+        bal = CryptoBalance.objects.filter(cryptowallet=self, code=crypto_id)
+        if(not bal.exists() or not bal[0].amount>amount):
+            data['code'] = -1
+            data['message'] = "you don't have enough crypto for this transaction."
+        
+        r = bal[0]
+        r.amount -= amount
+        r.save()
+
+        points = price * amount
+        self.user.wallet.operate(points)
+
+        x = CryptoWalletLedger.create_ledger_record(self, ActionType.SELL, crypto_id, price, amount)
+
+        data['code'] = 1
+        data['message'] = "Success"
+        data['wallet'] = self.wallet_data()
+        data['ledger'] = x
         return data
 
     def wallet_data(self):
@@ -101,6 +136,12 @@ class CryptoWalletLedger(models.Model):
     quantity = models.FloatField()
 
     created = models.DateTimeField(auto_now_add=True)
+
+    @staticmethod
+    def create_ledger_record(wallet, action, targetCryp, pricePerc, quan):
+        r = CryptoWalletLedger(cryptowallet=wallet, action_type=action, targetCrypto=targetCryp, pricePerCrypto=pricePerc, quantity=quan)
+        return r
+
 
     def as_dict(self):
         return {

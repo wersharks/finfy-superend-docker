@@ -41,7 +41,7 @@ class CryptoBuyAPI(APIView):
     def post(self,request):
         data = {}
         serializer = CryptoActionSerializer(data=request.data)
-        print(serializer)
+
         if(serializer.is_valid()):
             o = request.user.crypto.buy(serializer.data['crypto_symbol'], serializer.data['amount'])
             return Response(o)
@@ -52,12 +52,17 @@ class CryptoBuyAPI(APIView):
 
 @permission_classes([IsAuthenticated])
 class CryptoSellAPI(APIView):
-    def get(self,request):
+    def post(self,request):
         data = {}
-        data['code'] = 1
-        data['data'] = "hii"
+        serializer = CryptoActionSerializer(data=request.data)
 
-        return Response(data)
+        if(serializer.is_valid()):
+            o = request.user.crypto.sell(serializer.data['crypto_symbol'], serializer.data['amount'])
+            return Response(o)
+        else:
+            data['code'] = -1
+            data['message'] = "error while serializing data"
+            return Response(data)
 
 
 # @permission_classes([IsAuthenticated])
