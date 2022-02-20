@@ -4,19 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-import numpy as np
-import pandas as pd
 from pycoingecko import CoinGeckoAPI
 
-#Data Source
-import yfinance as yf
 
-#Data viz
-import plotly.graph_objs as go
-
-from .serializers import BuyCryptoSerializer
-
-COINS_MARKET = "bitcoin,litecoin,ethereum"
+from .serializers import CryptoActionSerializer
+from .const import COINS_MARKET
 
 # Create your views here.
 @permission_classes([IsAuthenticated])
@@ -32,14 +24,38 @@ class CryptoInfoAPI(APIView):
     def get(self,request):
     
         cg = CoinGeckoAPI()
-        d = cg.get_price(ids='bitcoin,litecoin,ethereum', vs_currencies='inr')
+        d = cg.get_price(ids=COINS_MARKET, vs_currencies='inr', include_24hr_change='true')
         coindata = []
         for k, v in d.items():
-            coindata.append({"crypto": k, "val":v['inr']})
+            coindata.append({"crypto": k, "val":v['inr'], "change":v['inr_24h_change']})
 
         data = {}
         data['code'] = 1
         data['data'] = coindata
+
+        return Response(data)
+
+
+@permission_classes([IsAuthenticated])
+class CryptoBuyAPI(APIView):
+    def post(self,request):
+        data = {}
+        serializer = CryptoActionSerializer(data=request.data)
+        print(serializer)
+        if(serializer.is_valid()):
+            o = request.user.crypto.buy(serializer.data['crypto_symbol'], serializer.data['amount'])
+            return Response(o)
+        else:
+            data['code'] = -1
+            data['message'] = "error while serializing data"
+            return Response(data)
+
+@permission_classes([IsAuthenticated])
+class CryptoSellAPI(APIView):
+    def get(self,request):
+        data = {}
+        data['code'] = 1
+        data['data'] = "hii"
 
         return Response(data)
 
