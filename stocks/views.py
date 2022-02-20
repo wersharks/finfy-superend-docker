@@ -1,13 +1,26 @@
 from django.shortcuts import render
+from django.contrib.auth import get_user_model, login, logout
 
 import yfinance as yf
 import pandas as pd
 import numpy as np
 
+from .serializers import StockActionSerializer
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
+
+User = get_user_model()
+
+@permission_classes([IsAuthenticated])
+class MyHistoryAPI(APIView):
+    def get(self, request):
+        user = request.user
+        stockwallet = user.stocks
+        d = stockwallet.get_all_ledger()
+        return Response(d)
 
 @permission_classes([IsAuthenticated])
 class infoAPI(APIView):
@@ -31,13 +44,32 @@ class infoAPI(APIView):
         news = company_info.news
         content = {'latest' : latest, 'on_day_prev' : one_day_prev, 'diff' : diff, 'percentage_diff':percentage_diff,'logo':logo,'market_cap':market_cap,'dividend':dividend,'sector':sector,'empolyees':employees,'summary':summary,'news':news}
         return Response(content)
-
+    
 @permission_classes([IsAuthenticated])
-class MyHistoryAPI(APIView):
-    def get(self, request):
-        user = request.user
-        stockwallet = user.stocks
-        d = stockwallet.get_all_ledger()
-        return Response(d)
+class StockBuyAPI(APIView):
+    def post(self,request):
+        data = {}
+        serializer = StockActionSerializer(data=request.data)
 
+        if(serializer.is_valid()):
+            o = request.user.stocks.buy(serializer.data['stock_symbol'], serializer.data['amount'])
+            return Response(o)
+        else:
+            data['code'] = -1
+            data['message'] = "error while serializing data"
+            return Response(data)
+    
+@permission_classes([IsAuthenticated])
+class StockSellAPI(APIView):
+    def post(self,request):
+        data = {}
+        serializer = StockActionSerializer(data=request.data)
+
+        if(serializer.is_valid()):
+            o = request.user.stocks.sell(serializer.data['stock_symbol'], serializer.data['amount'])
+            return Response(o)
+        else:
+            data['code'] = -1
+            data['message'] = "error while serializing data"
+            return Response(data)
 

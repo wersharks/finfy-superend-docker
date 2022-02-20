@@ -39,7 +39,6 @@ class CryptoWallet(models.Model):
             new_rc.save()
 
         self.user.wallet.operate(amount * price * -1)
-
         x = CryptoWalletLedger.create_ledger_record(self, ActionType.BUY, crypto_id, price, amount)
 
         data['code'] = 1
