@@ -49,7 +49,6 @@ class MyHistoryAPI(APIView):
         return Response(ledger)
 
 def filter_open(l):
-    print(l)
     if("Fixed" in l['invesType'] or not "ontenure" in l['inveStat']):
         return False
     else:

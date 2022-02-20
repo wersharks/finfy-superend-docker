@@ -3,14 +3,52 @@ from django.contrib.auth import get_user_model
 from annoying.fields import AutoOneToOneField
 from enum import Enum
 
+from numpy import true_divide
+from .const import COINS_MARKET
+from pycoingecko import CoinGeckoAPI
+
 User = get_user_model()
 
 class CryptoWallet(models.Model):
     user = AutoOneToOneField(User, related_name='crypto', on_delete=models.CASCADE)
 
-    def operate(self, crypto_id, amount):
+    def buy(self, crypto_id, amount):
+        data = {}
+        if(not CryptoWallet.isValidCryptId(crypto_id)):
+            data['code'] = -1
+            data['message'] = "not a valid crypto"
+            return data
+        
+        cdata = CryptoWallet.get_coin_data(crypto_id)
+        price = cdata[crypto_id]['inr']
+        if(amount * price > self.user.wallet.points):
+            data['code'] = -1
+            data['message'] = "not enough money for this transaction"
+            return data
+
         # get all wallets with crypto_id
-        bal = list(CryptoBalance.objects.filter(cryptowallet=self))
+        bal = CryptoBalance.objects.filter(cryptowallet=self, code=crypto_id)
+        if(bal.exists()):
+            # Already wallet there so add some
+            rc = bal[0]
+            rc.amount += amount
+            rc.save()
+        else:
+            # Create new wallet
+            new_rc = CryptoBalance(cryptowallet=self, code=crypto_id, amount=amount)
+            new_rc.save()
+
+        data['code'] = 1
+        data['message'] = "Success"
+        data['wallet'] = self.wallet_data()
+        return data
+
+    def wallet_data(self):
+        data = list(CryptoBalance.objects.filter(cryptowallet=self))
+        if(len(data)>0):
+            return [d.as_dict() for d in data]
+        else:
+            return {}
 
     def get_all_ledger(self):
         data = {}
@@ -27,10 +65,29 @@ class CryptoWallet(models.Model):
             data['data'].append(d.as_dict())
         return data
 
+    @staticmethod
+    def isValidCryptId(id):
+        if(id in COINS_MARKET):
+            return True
+        else: return False
+
+    @staticmethod
+    def get_coin_data(coin_id):
+        cg = CoinGeckoAPI()
+        d = cg.get_price(ids=coin_id, vs_currencies='inr')
+        return d
+
 class CryptoBalance(models.Model):
     cryptowallet = models.ForeignKey(CryptoWallet, related_name='wallet', on_delete=models.CASCADE)
     code = models.CharField(max_length=5)
     amount = models.FloatField()
+
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "crypt": self.code,
+            "amount": self.amount,
+        }
 
 class ActionType(Enum):
     BUY="buy"

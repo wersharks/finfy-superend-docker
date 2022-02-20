@@ -5,9 +5,9 @@ from django.contrib.auth.password_validation import validate_password
 from bank.models import DepositType, InvestmentType
 
 
-class BuyCryptoSerializer(serializers.Serializer):
+class CryptoActionSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
-    crypto_symbol = CharField()
+    crypto_symbol = serializers.CharField()
     # inves_type = serializers.CharField()
 
     class Meta:
