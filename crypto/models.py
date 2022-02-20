@@ -5,24 +5,24 @@ from enum import Enum
 
 User = get_user_model()
 
-class StocksBalance(models.Model):
+class CryptoBalance(models.Model):
     code = models.CharField(max_length=5)
     amount = models.FloatField()
 
-class StocksWallet(models.Model):
-    user = AutoOneToOneField(User, related_name='stocks', on_delete=models.CASCADE)
-    balance = models.ForeignKey(StocksBalance, null=True, on_delete=models.CASCADE)
+class CryptoWallet(models.Model):
+    user = AutoOneToOneField(User, related_name='crypto', on_delete=models.CASCADE)
+    balance = models.ForeignKey(CryptoBalance, null=True, on_delete=models.CASCADE)
 
-    def operate(self, stock_id, amount):
+    def operate(self, crypto_id, amount):
         pass
 
     def get_all_ledger(self):
         data = {}
 
-        ledger = list(StocksWalletLedger.objects.filter(stockwallet=self))
+        ledger = list(CryptoWalletLedger.objects.filter(Cryptowallet=self))
         if(len(ledger) <= 0):
             data['code'] = -1
-            data['message'] = "no ledger record for your stocks"
+            data['message'] = "no ledger record for your crypto"
             return data
 
         data['code'] = 1
@@ -37,12 +37,12 @@ class ActionType(Enum):
     BUY="buy"
     SELL="sell"
 
-class StocksWalletLedger(models.Model):
-    stockwallet = models.ForeignKey(StocksWallet, related_name='ledger', on_delete=models.CASCADE)
+class CryptoWalletLedger(models.Model):
+    cryptowallet = models.ForeignKey(CryptoWallet, related_name='ledger', on_delete=models.CASCADE)
     action_type = models.CharField(max_length=5, choices=[(tag, tag.value) for tag in ActionType])
-    targetStock = models.CharField(max_length=5,)
-    pricePerStock = models.FloatField()
-    quantity = models.PositiveIntegerField()
+    targetCrypto = models.CharField(max_length=5,)
+    pricePerCrypto = models.FloatField()
+    quantity = models.FloatField()
 
     created = models.DateTimeField(auto_now_add=True)
 
@@ -50,8 +50,8 @@ class StocksWalletLedger(models.Model):
         return {
             "id": self.id,
             "action": self.action_type,
-            "targetStock": self.targetStock,
-            "price": self.pricePerStock,
+            "targetCrypto": self.targetCrypto,
+            "price": self.pricePerCrypto,
             "quantity": self.quantity,
             "created": self.created,
         }

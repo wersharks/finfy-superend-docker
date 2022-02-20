@@ -12,8 +12,7 @@ from rest_framework.decorators import api_view, permission_classes
 @permission_classes([IsAuthenticated])
 class infoAPI(APIView):
     def get(self, request):
-        company = self.request.query_params.get('company')
-        company_info = yf.Ticker(company)
+        company_info = yf.Ticker('ZOMATO.NS')
         hist = company_info.history(period="max")
         a = hist.to_numpy() 
         shape = a.shape
@@ -25,13 +24,20 @@ class infoAPI(APIView):
         logo = company_info.info['logo_url']
         market_cap = company_info.info['marketCap']
         dividend = company_info.info['dividendYield']
-        PEratio = company_info.info['trailingPE']
+        # PEratio = company_info.info['trailingPE']
         sector = company_info.info['sector']
         employees = company_info.info['fullTimeEmployees']
         summary = company_info.info['longBusinessSummary']
         news = company_info.news
-        content = {'latest' : latest, 'on_day_prev' : one_day_prev, 'diff' : diff, 'percentage_diff':percentage_diff,'logo':logo,'market_cap':market_cap,'dividend':dividend,'PEratio':PEratio,'sector':sector,'empolyees':employees,'summary':summary,'news':news}
+        content = {'latest' : latest, 'on_day_prev' : one_day_prev, 'diff' : diff, 'percentage_diff':percentage_diff,'logo':logo,'market_cap':market_cap,'dividend':dividend,'sector':sector,'empolyees':employees,'summary':summary,'news':news}
         return Response(content)
 
 @permission_classes([IsAuthenticated])
-class tradeAPI(APIView):
+class MyHistoryAPI(APIView):
+    def get(self, request):
+        user = request.user
+        stockwallet = user.stocks
+        d = stockwallet.get_all_ledger()
+        return Response(d)
+
+

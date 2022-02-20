@@ -92,9 +92,9 @@ class BankLedger(models.Model):
     def update_deposit_ledger(self):
         now = datetime.now(timezone.utc)     
         time_elasped = now - self.lastUpdated
-        mins = time_elasped.total_seconds() / 60
+        hrs = time_elasped.total_seconds() / (60 * 60 * 24)
 
-        year = int(mins)
+        year = int(hrs)
         for i in range(year):
             self.current_amount += self.current_amount * (self.startingInterest / 100)
 
